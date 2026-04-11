@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Libre Data Analyzer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* 全体の背景とフォント設定 */
+      body {
+        font-family: "Noto Sans JP", sans-serif;
+        background-color: #f4f7f6;
+        color: #334155;
+        margin: 0;
+        padding: 40px 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        box-sizing: border-box;
+      }
+
+      /* メインの白いカード */
+      .container {
+        background: #ffffff;
+        width: 100%;
+        max-width: 480px;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+      }
+
+      /* タイトルと説明文 */
+      h1 {
+        font-size: 24px;
+        font-weight: 700;
+        text-align: center;
+        margin: 0 0 10px 0;
+        color: #0f172a;
+      }
+      .description {
+        font-size: 13px;
+        text-align: center;
+        color: #64748b;
+        margin-bottom: 30px;
+      }
+
+      /* ファイルアップロードエリアのカスタマイズ */
+      .upload-area {
+        position: relative;
+        background-color: #f8fafc;
+        border: 2px dashed #cbd5e1;
+        border-radius: 16px;
+        padding: 30px 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        margin-bottom: 30px;
+      }
+      .upload-area:hover {
+        border-color: #3b82f6;
+        background-color: #eff6ff;
+      }
+      .upload-area input[type="file"] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+      }
+      .upload-icon {
+        font-size: 32px;
+        margin-bottom: 10px;
+      }
+      .upload-text {
+        font-size: 14px;
+        font-weight: 500;
+        color: #475569;
+      }
+
+      /* 結果表示エリア（最初から表示する） */
+      .result-box {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 24px;
+      }
+
+      /* 期間の表示 */
+      .period-box {
+        background-color: #f0fdf4;
+        color: #166534;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 500;
+        text-align: center;
+        margin-bottom: 24px;
+      }
+
+      /* 数値を目立たせるグリッドレイアウト */
+      .stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      .stat-card {
+        background-color: #f8fafc;
+        padding: 20px;
+        border-radius: 16px;
+        text-align: center;
+      }
+      .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 4px;
+        transition: color 0.3s ease;
+      }
+      .stat-label {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 500;
+      }
+
+      /* 内訳のリスト表示 */
+      .breakdown {
+        border-top: 1px solid #e2e8f0;
+        padding-top: 20px;
+      }
+      .breakdown-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 12px;
+      }
+      .breakdown-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        color: #334155;
+        padding: 8px 0;
+        border-bottom: 1px dashed #e2e8f0;
+      }
+      .breakdown-item:last-child {
+        border-bottom: none;
+      }
+      .breakdown-value {
+        font-weight: 700;
+        transition: color 0.3s ease;
+      }
+
+      /* データがない（未入力）時の見た目 */
+      .empty-text {
+        color: #94a3b8; /* 薄いグレーにして空欄感を出す */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Libre Data Analyzer</h1>
+      <p class="description">
+        リブレのCSVファイルを選択してください。<br />データはブラウザ内で安全に処理されます。
+      </p>
+
+      <div class="upload-area">
+        <input type="file" id="csvFileInput" accept=".csv" />
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">ファイルを選択、またはドロップ</div>
+      </div>
+
+      <div id="result" class="result-box">
+        <div class="period-box" id="periodResult">
+          <span class="empty-text"
+            >📅 ファイルを選択すると記録期間が表示されます</span
+          >
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-value empty-text" id="totalCount">-</div>
+            <div class="stat-label">総注射回数 (回)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value empty-text" id="totalSum">-</div>
+            <div class="stat-label">総インスリン量 (単位)</div>
+          </div>
+        </div>
+
+        <div class="breakdown">
+          <div class="breakdown-title">インスリン内訳</div>
+          <div class="breakdown-item">
+            <span>超速効型</span>
+            <span class="breakdown-value empty-text" id="fastActingResult"
+              >- 回 / - 単位</span
+            >
+          </div>
+          <div class="breakdown-item">
+            <span>持効型</span>
+            <span class="breakdown-value empty-text" id="longActingResult"
+              >- 回 / - 単位</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("csvFileInput")
+        .addEventListener("change", function (e) {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          Papa.parse(file, {
+            complete: function (results) {
+              const data = results.data;
+
+              if (data.length < 3) {
+                alert(
+                  "データが正しく読み込めませんでした。ファイル形式を確認してください。",
+                );
+                return;
+              }
+
+              const headers = data[1];
+
+              const fastActingIdx =
+                headers.indexOf("超速効型インスリン値（単位）");
+              const longActingIdx =
+                headers.indexOf("持効型インスリン値（単位）");
+              const timeIdx = headers.indexOf("タイムスタンプ測定器");
+
+              let fastActingCount = 0,
+                fastActingSum = 0;
+              let longActingCount = 0,
+                longActingSum = 0;
+
+              let uniqueDates = new Set();
+              let earliestDate = null;
+
+              for (let i = 2; i < data.length; i++) {
+                const row = data[i];
+
+                // 日付の計算
+                if (timeIdx !== -1 && row[timeIdx]) {
+                  const datePart = row[timeIdx].split(" ")[0];
+                  if (datePart && datePart.length >= 8) {
+                    uniqueDates.add(datePart);
+                    if (
+                      earliestDate === null ||
+                      new Date(datePart) < new Date(earliestDate)
+                    ) {
+                      earliestDate = datePart;
+                    }
+                  }
+                }
+
+                // 超速効型の計算
+                if (fastActingIdx !== -1 && row[fastActingIdx]) {
+                  const val = parseFloat(row[fastActingIdx]);
+                  if (!isNaN(val)) {
+                    fastActingCount++;
+                    fastActingSum += val;
+                  }
+                }
+
+                // 持効型の計算
+                if (longActingIdx !== -1 && row[longActingIdx]) {
+                  const val = parseFloat(row[longActingIdx]);
+                  if (!isNaN(val)) {
+                    longActingCount++;
+                    longActingSum += val;
+                  }
+                }
+              }
+
+              const totalCount = fastActingCount + longActingCount;
+              const totalSum = fastActingSum + longActingSum;
+
+              // 結果のUI更新（クラス 'empty-text' を削除して色を濃くする）
+              const periodEl = document.getElementById("periodResult");
+              if (earliestDate && uniqueDates.size > 0) {
+                periodEl.innerText = `📅 開始日: ${earliestDate} （記録日数: ${uniqueDates.size} 日間）`;
+              } else {
+                periodEl.innerText =
+                  "📅 記録期間のデータが見つかりませんでした。";
+              }
+              periodEl.classList.remove("empty-text");
+
+              const countEl = document.getElementById("totalCount");
+              countEl.innerText = totalCount.toLocaleString();
+              countEl.classList.remove("empty-text");
+
+              const sumEl = document.getElementById("totalSum");
+              sumEl.innerText = totalSum.toLocaleString();
+              sumEl.classList.remove("empty-text");
+
+              const fastEl = document.getElementById("fastActingResult");
+              fastEl.innerText = `${fastActingCount.toLocaleString()} 回 / ${fastActingSum.toLocaleString()} 単位`;
+              fastEl.classList.remove("empty-text");
+
+              const longEl = document.getElementById("longActingResult");
+              longEl.innerText = `${longActingCount.toLocaleString()} 回 / ${longActingSum.toLocaleString()} 単位`;
+              longEl.classList.remove("empty-text");
+            },
+          });
+        });
+    </script>
+  </body>
+</html>
