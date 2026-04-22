@@ -29,7 +29,7 @@
       .container {
         background: #ffffff;
         width: 100%;
-        max-width: 480px;
+        max-width: 540px;
         padding: 40px;
         border-radius: 20px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
@@ -37,26 +37,134 @@
 
       /* タイトルと説明文 */
       h1 {
-        font-size: 24px;
+        font-size: 26px;
         font-weight: 700;
         text-align: center;
-        margin: 0 0 10px 0;
+        margin: 0 0 8px 0;
         color: #0f172a;
       }
       .description {
-        font-size: 13px;
+        font-size: 14px;
         text-align: center;
         color: #64748b;
         margin-bottom: 30px;
       }
 
-      /* ファイルアップロードエリアのカスタマイズ */
+      /* 使い方ガイド */
+      .guide-box {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 30px;
+      }
+      .guide-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .steps {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .step {
+        flex: 1;
+        background: #ffffff;
+        padding: 16px 12px;
+        border-radius: 12px;
+        text-align: center;
+        font-size: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+      }
+      .step-icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+      .step-text {
+        color: #334155;
+        font-weight: 500;
+        line-height: 1.4;
+      }
+
+      /* インフォアイコンのスタイル */
+      .info-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        font-size: 12px;
+        color: black;
+        border-radius: 50%;
+        margin-left: 4px;
+        cursor: pointer;
+        vertical-align: middle;
+        transition: background-color 0.2s;
+      }
+      .info-icon:hover {
+        background-color: #acc6ff;
+      }
+
+      /* モーダル（ポップアップ）のスタイル */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+      .modal-content {
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+        background-color: white;
+        padding: 10px;
+        border-radius: 12px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      }
+      .modal-content img {
+        display: block;
+        max-width: 100%;
+        max-height: 80vh;
+        border-radius: 4px;
+      }
+      .close-btn {
+        position: absolute;
+        top: -15px;
+        right: -15px;
+        width: 30px;
+        height: 30px;
+        background-color: #ef4444;
+        color: white;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      /* アップロードエリア */
       .upload-area {
         position: relative;
-        background-color: #f8fafc;
+        background-color: #ffffff;
         border: 2px dashed #cbd5e1;
         border-radius: 16px;
-        padding: 30px 20px;
+        padding: 40px 20px;
         text-align: center;
         transition: all 0.3s ease;
         cursor: pointer;
@@ -64,7 +172,7 @@
       }
       .upload-area:hover {
         border-color: #3b82f6;
-        background-color: #eff6ff;
+        background-color: #f0f7ff;
       }
       .upload-area input[type="file"] {
         position: absolute;
@@ -76,36 +184,38 @@
         cursor: pointer;
       }
       .upload-icon {
-        font-size: 32px;
-        margin-bottom: 10px;
+        font-size: 36px;
+        margin-bottom: 12px;
       }
       .upload-text {
-        font-size: 14px;
-        font-weight: 500;
-        color: #475569;
+        font-size: 15px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 4px;
+      }
+      .upload-subtext {
+        font-size: 12px;
+        color: #64748b;
       }
 
-      /* 結果表示エリア（最初から表示する） */
+      /* 結果表示エリア */
       .result-box {
         background-color: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 16px;
         padding: 24px;
       }
-
-      /* 期間の表示 */
       .period-box {
         background-color: #f0fdf4;
         color: #166534;
         padding: 12px 16px;
         border-radius: 12px;
         font-size: 13px;
-        font-weight: 500;
+        font-weight: 700;
         text-align: center;
         margin-bottom: 24px;
+        display: none;
       }
-
-      /* 数値を目立たせるグリッドレイアウト */
       .stat-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -123,15 +233,12 @@
         font-weight: 700;
         color: #0f172a;
         margin-bottom: 4px;
-        transition: color 0.3s ease;
       }
       .stat-label {
         font-size: 12px;
         color: #64748b;
         font-weight: 500;
       }
-
-      /* 内訳のリスト表示 */
       .breakdown {
         border-top: 1px solid #e2e8f0;
         padding-top: 20px;
@@ -147,7 +254,7 @@
         justify-content: space-between;
         font-size: 14px;
         color: #334155;
-        padding: 8px 0;
+        padding: 10px 0;
         border-bottom: 1px dashed #e2e8f0;
       }
       .breakdown-item:last-child {
@@ -155,12 +262,47 @@
       }
       .breakdown-value {
         font-weight: 700;
-        transition: color 0.3s ease;
+      }
+      .empty-text {
+        color: #cbd5e1 !important;
+      }
+      .waiting-state {
+        opacity: 0.5;
+        pointer-events: none;
       }
 
-      /* データがない（未入力）時の見た目 */
-      .empty-text {
-        color: #94a3b8; /* 薄いグレーにして空欄感を出す */
+      /* プロフィール＆リンクエリアのスタイル */
+      .profile-section {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid #e2e8f0;
+        text-align: center;
+      }
+      .profile-links {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .profile-link-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 12px 20px;
+        background-color: #f8fafc;
+        color: #475569;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 700;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+      }
+      .profile-link-btn:hover {
+        background-color: #f1f5f9;
+        color: #0f172a;
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
       }
     </style>
   </head>
@@ -168,22 +310,39 @@
     <div class="container">
       <h1>Libre Data Analyzer</h1>
       <p class="description">
-        リブレのCSVファイルを選択してください。<br />データはブラウザ内で安全に処理されます。
+        リブレのデータを読み込み、インスリンの利用状況を瞬時に集計します。
       </p>
+
+      <div class="guide-box">
+        <div class="guide-title"><span>💡</span> 使い方のステップ</div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-icon">💻</div>
+            <div class="step-text">LibreViewに<br />ログイン</div>
+          </div>
+          <div class="step">
+            <div class="step-icon">📊</div>
+            <div class="step-text">
+              「グルコースデータの<br />ダウンロード」<br />を開く
+              <span class="info-icon" id="infoBtn">ⓘ</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-icon">⬇️</div>
+            <div class="step-text">CSVデータを<br />ダウンロード</div>
+          </div>
+        </div>
+      </div>
 
       <div class="upload-area">
         <input type="file" id="csvFileInput" accept=".csv" />
         <div class="upload-icon">📁</div>
-        <div class="upload-text">ファイルを選択、またはドロップ</div>
+        <div class="upload-text">ここにCSVファイルをドロップ</div>
+        <div class="upload-subtext">またはクリックしてファイルを選択</div>
       </div>
 
-      <div id="result" class="result-box">
-        <div class="period-box" id="periodResult">
-          <span class="empty-text"
-            >📅 ファイルを選択すると記録期間が表示されます</span
-          >
-        </div>
-
+      <div id="resultArea" class="result-box waiting-state">
+        <div class="period-box" id="periodResult"></div>
         <div class="stat-grid">
           <div class="stat-card">
             <div class="stat-value empty-text" id="totalCount">-</div>
@@ -194,7 +353,6 @@
             <div class="stat-label">総インスリン量 (単位)</div>
           </div>
         </div>
-
         <div class="breakdown">
           <div class="breakdown-title">インスリン内訳</div>
           <div class="breakdown-item">
@@ -211,9 +369,58 @@
           </div>
         </div>
       </div>
+
+      <div class="profile-section">
+        <div class="profile-links">
+          <a
+            href="特定のURLをここに入力"
+            target="_blank"
+            rel="noopener"
+            class="profile-link-btn"
+          >
+            📖 詳しい使い方を見る
+          </a>
+          <a
+            href="https://note.com/kamemel"
+            target="_blank"
+            rel="noopener"
+            class="profile-link-btn"
+          >
+            ✍️ 開発者のnote (kamemel)
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal-content">
+        <button class="close-btn" id="closeBtn">×</button>
+        <img src="pic.jpeg" alt="ヘルプ画像" id="helpImage" />
+      </div>
     </div>
 
     <script>
+      // モーダル操作
+      const infoBtn = document.getElementById("infoBtn");
+      const modalOverlay = document.getElementById("modalOverlay");
+      const closeBtn = document.getElementById("closeBtn");
+
+      infoBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        modalOverlay.style.display = "flex";
+      });
+
+      closeBtn.addEventListener("click", () => {
+        modalOverlay.style.display = "none";
+      });
+
+      modalOverlay.addEventListener("click", (e) => {
+        if (e.target === modalOverlay) {
+          modalOverlay.style.display = "none";
+        }
+      });
+
+      // CSV解析処理
       document
         .getElementById("csvFileInput")
         .addEventListener("change", function (e) {
@@ -223,16 +430,14 @@
           Papa.parse(file, {
             complete: function (results) {
               const data = results.data;
-
               if (data.length < 3) {
                 alert(
-                  "データが正しく読み込めませんでした。ファイル形式を確認してください。",
+                  "データが正しく読み込めませんでした。LibreViewのCSVを選択してください。",
                 );
                 return;
               }
 
               const headers = data[1];
-
               const fastActingIdx =
                 headers.indexOf("超速効型インスリン値（単位）");
               const longActingIdx =
@@ -243,28 +448,29 @@
                 fastActingSum = 0;
               let longActingCount = 0,
                 longActingSum = 0;
-
               let uniqueDates = new Set();
               let earliestDate = null;
+              let latestDate = null;
 
               for (let i = 2; i < data.length; i++) {
                 const row = data[i];
-
-                // 日付の計算
                 if (timeIdx !== -1 && row[timeIdx]) {
                   const datePart = row[timeIdx].split(" ")[0];
                   if (datePart && datePart.length >= 8) {
                     uniqueDates.add(datePart);
+                    const currentDate = new Date(datePart);
                     if (
                       earliestDate === null ||
-                      new Date(datePart) < new Date(earliestDate)
-                    ) {
+                      currentDate < new Date(earliestDate)
+                    )
                       earliestDate = datePart;
-                    }
+                    if (
+                      latestDate === null ||
+                      currentDate > new Date(latestDate)
+                    )
+                      latestDate = datePart;
                   }
                 }
-
-                // 超速効型の計算
                 if (fastActingIdx !== -1 && row[fastActingIdx]) {
                   const val = parseFloat(row[fastActingIdx]);
                   if (!isNaN(val)) {
@@ -272,8 +478,6 @@
                     fastActingSum += val;
                   }
                 }
-
-                // 持効型の計算
                 if (longActingIdx !== -1 && row[longActingIdx]) {
                   const val = parseFloat(row[longActingIdx]);
                   if (!isNaN(val)) {
@@ -283,26 +487,27 @@
                 }
               }
 
-              const totalCount = fastActingCount + longActingCount;
-              const totalSum = fastActingSum + longActingSum;
-
-              // 結果のUI更新（クラス 'empty-text' を削除して色を濃くする）
+              document
+                .getElementById("resultArea")
+                .classList.remove("waiting-state");
               const periodEl = document.getElementById("periodResult");
-              if (earliestDate && uniqueDates.size > 0) {
-                periodEl.innerText = `📅 開始日: ${earliestDate} （記録日数: ${uniqueDates.size} 日間）`;
-              } else {
-                periodEl.innerText =
-                  "📅 記録期間のデータが見つかりませんでした。";
-              }
-              periodEl.classList.remove("empty-text");
+              periodEl.style.display = "block";
+              periodEl.innerText = earliestDate
+                ? `📅 記録期間: ${earliestDate} 〜 ${latestDate} （計 ${uniqueDates.size} 日間）`
+                : "📅 期間不明";
 
-              const countEl = document.getElementById("totalCount");
-              countEl.innerText = totalCount.toLocaleString();
-              countEl.classList.remove("empty-text");
-
-              const sumEl = document.getElementById("totalSum");
-              sumEl.innerText = totalSum.toLocaleString();
-              sumEl.classList.remove("empty-text");
+              document.getElementById("totalCount").innerText = (
+                fastActingCount + longActingCount
+              ).toLocaleString();
+              document
+                .getElementById("totalCount")
+                .classList.remove("empty-text");
+              document.getElementById("totalSum").innerText = (
+                fastActingSum + longActingSum
+              ).toLocaleString();
+              document
+                .getElementById("totalSum")
+                .classList.remove("empty-text");
 
               const fastEl = document.getElementById("fastActingResult");
               fastEl.innerText = `${fastActingCount.toLocaleString()} 回 / ${fastActingSum.toLocaleString()} 単位`;
