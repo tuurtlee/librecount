@@ -3,9 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>リブレデータ分析</title>
+    <title>Libre Data Analyzer</title>
+
     <link rel="icon" href="favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="favicon.png" />
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap"
@@ -125,6 +127,7 @@
         justify-content: center;
         align-items: center;
         padding: 20px;
+        box-sizing: border-box;
       }
       .modal-content {
         position: relative;
@@ -134,12 +137,22 @@
         padding: 10px;
         border-radius: 12px;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-content picture {
+        display: block;
+        margin: 0 auto;
       }
       .modal-content img {
         display: block;
         max-width: 100%;
         max-height: 80vh;
         border-radius: 4px;
+        margin: 0 auto;
+        object-fit: contain;
       }
       .close-btn {
         position: absolute;
@@ -158,6 +171,7 @@
         align-items: center;
         justify-content: center;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        z-index: 10;
       }
 
       /* アップロードエリア */
@@ -289,6 +303,7 @@
       .profile-link-btn {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 6px;
         padding: 12px 20px;
         background-color: #f8fafc;
@@ -306,13 +321,64 @@
         border-color: #cbd5e1;
         transform: translateY(-1px);
       }
+
+      /* スマホ向けレイアウト調整（画面幅が600px以下の場合に適用） */
+      @media (max-width: 600px) {
+        body {
+          padding: 20px 10px;
+        }
+        .container {
+          padding: 24px 20px;
+        }
+
+        .steps {
+          flex-direction: column;
+        }
+        .step {
+          display: flex;
+          align-items: center;
+          text-align: left;
+          padding: 12px 20px;
+        }
+        .step-icon {
+          margin-bottom: 0;
+          margin-right: 16px;
+          font-size: 28px;
+        }
+        .step-text br {
+          display: none;
+        }
+
+        .modal-content {
+          max-width: 85%;
+        }
+        .close-btn {
+          top: -10px;
+          right: -10px;
+          width: 28px;
+          height: 28px;
+          font-size: 16px;
+        }
+
+        .stat-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .profile-links {
+          flex-direction: column;
+        }
+        .profile-link-btn {
+          width: 100%;
+          box-sizing: border-box;
+        }
+      }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>リブレデータ分析</h1>
+      <h1>Libre Data Analyzer</h1>
       <p class="description">
-        リブレのデータを読み込み、インスリンの利用状況を瞬時に集計します。
+        リブレのデータを読み込み、インスリンの利用状況を瞬時に集計します。処理はすべてデバイス上で行われます。
       </p>
 
       <div class="guide-box">
@@ -397,7 +463,10 @@
     <div class="modal-overlay" id="modalOverlay">
       <div class="modal-content">
         <button class="close-btn" id="closeBtn">×</button>
-        <img src="pic.jpeg" alt="ヘルプ画像" id="helpImage" />
+        <picture>
+          <source media="(max-width: 600px)" srcset="pic2.png" />
+          <img src="pic.jpeg" alt="ヘルプ画像" id="helpImage" />
+        </picture>
       </div>
     </div>
 
