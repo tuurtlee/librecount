@@ -186,7 +186,8 @@
         cursor: pointer;
         margin-bottom: 30px;
       }
-      .upload-area:hover {
+      .upload-area:hover,
+      .upload-area.dragover {
         border-color: #3b82f6;
         background-color: #f0f7ff;
       }
@@ -234,7 +235,7 @@
       }
       .stat-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr; /* スキャン回数追加のため3列に変更 */
+        grid-template-columns: 1fr 1fr 1fr;
         gap: 16px;
         margin-bottom: 24px;
       }
@@ -402,11 +403,11 @@
         </div>
       </div>
 
-      <div class="upload-area">
+      <div class="upload-area" id="uploadArea">
         <input type="file" id="csvFileInput" accept=".csv" />
         <div class="upload-icon">📁</div>
         <div class="upload-text">ここにCSVファイルをドロップ</div>
-        <div class="upload-subtext">またはクリックしてファイルを選択</div>
+        <div class="upload-subtext">または画面のどこかにドロップ</div>
       </div>
 
       <div id="resultArea" class="result-box waiting-state">
@@ -495,123 +496,167 @@
         }
       });
 
-      // CSV解析処理
+      // CSV解析処理を関数にまとめる
+      function parseCSV(file) {
+        if (!file) return;
+
+        Papa.parse(file, {
+          complete: function (results) {
+            const data = results.data;
+            if (data.length < 3) {
+              alert(
+                "データが正しく読み込めませんでした。LibreViewのCSVを選択してください。",
+              );
+              return;
+            }
+
+            const headers = data[1];
+            const scanIdx = headers.indexOf("血糖値をスキャンする mg/dL");
+            const fastActingIdx =
+              headers.indexOf("超速効型インスリン値（単位）");
+            const longActingIdx = headers.indexOf("持効型インスリン値（単位）");
+            const timeIdx = headers.indexOf("タイムスタンプ測定器");
+
+            let scanCount = 0;
+            let fastActingCount = 0,
+              fastActingSum = 0;
+            let longActingCount = 0,
+              longActingSum = 0;
+            let uniqueDates = new Set();
+            let earliestDate = null;
+            let latestDate = null;
+
+            for (let i = 2; i < data.length; i++) {
+              const row = data[i];
+              if (timeIdx !== -1 && row[timeIdx]) {
+                const datePart = row[timeIdx].split(" ")[0];
+                if (datePart && datePart.length >= 8) {
+                  uniqueDates.add(datePart);
+                  const currentDate = new Date(datePart);
+                  if (
+                    earliestDate === null ||
+                    currentDate < new Date(earliestDate)
+                  )
+                    earliestDate = datePart;
+                  if (latestDate === null || currentDate > new Date(latestDate))
+                    latestDate = datePart;
+                }
+              }
+
+              if (scanIdx !== -1 && row[scanIdx]) {
+                const val = parseFloat(row[scanIdx]);
+                if (!isNaN(val)) {
+                  scanCount++;
+                }
+              }
+
+              if (fastActingIdx !== -1 && row[fastActingIdx]) {
+                const val = parseFloat(row[fastActingIdx]);
+                if (!isNaN(val)) {
+                  fastActingCount++;
+                  fastActingSum += val;
+                }
+              }
+              if (longActingIdx !== -1 && row[longActingIdx]) {
+                const val = parseFloat(row[longActingIdx]);
+                if (!isNaN(val)) {
+                  longActingCount++;
+                  longActingSum += val;
+                }
+              }
+            }
+
+            document
+              .getElementById("resultArea")
+              .classList.remove("waiting-state");
+            const periodEl = document.getElementById("periodResult");
+            periodEl.style.display = "block";
+            periodEl.innerText = earliestDate
+              ? `📅 記録期間: ${earliestDate} 〜 ${latestDate} （計 ${uniqueDates.size} 日間）`
+              : "📅 期間不明";
+
+            document.getElementById("scanCount").innerText =
+              scanCount.toLocaleString();
+            document.getElementById("scanCount").classList.remove("empty-text");
+
+            document.getElementById("totalCount").innerText = (
+              fastActingCount + longActingCount
+            ).toLocaleString();
+            document
+              .getElementById("totalCount")
+              .classList.remove("empty-text");
+            document.getElementById("totalSum").innerText = (
+              fastActingSum + longActingSum
+            ).toLocaleString();
+            document.getElementById("totalSum").classList.remove("empty-text");
+
+            const fastEl = document.getElementById("fastActingResult");
+            fastEl.innerText = `${fastActingCount.toLocaleString()} 回 / ${fastActingSum.toLocaleString()} 単位`;
+            fastEl.classList.remove("empty-text");
+
+            const longEl = document.getElementById("longActingResult");
+            longEl.innerText = `${longActingCount.toLocaleString()} 回 / ${longActingSum.toLocaleString()} 単位`;
+            longEl.classList.remove("empty-text");
+          },
+        });
+      }
+
+      // インプット要素からのファイル選択
       document
         .getElementById("csvFileInput")
         .addEventListener("change", function (e) {
-          const file = e.target.files[0];
-          if (!file) return;
-
-          Papa.parse(file, {
-            complete: function (results) {
-              const data = results.data;
-              if (data.length < 3) {
-                alert(
-                  "データが正しく読み込めませんでした。LibreViewのCSVを選択してください。",
-                );
-                return;
-              }
-
-              const headers = data[1];
-              const scanIdx = headers.indexOf("血糖値をスキャンする mg/dL"); // 追加: スキャン回数のインデックス
-              const fastActingIdx =
-                headers.indexOf("超速効型インスリン値（単位）");
-              const longActingIdx =
-                headers.indexOf("持効型インスリン値（単位）");
-              const timeIdx = headers.indexOf("タイムスタンプ測定器");
-
-              let scanCount = 0; // 追加: スキャン回数のカウント用変数
-              let fastActingCount = 0,
-                fastActingSum = 0;
-              let longActingCount = 0,
-                longActingSum = 0;
-              let uniqueDates = new Set();
-              let earliestDate = null;
-              let latestDate = null;
-
-              for (let i = 2; i < data.length; i++) {
-                const row = data[i];
-                if (timeIdx !== -1 && row[timeIdx]) {
-                  const datePart = row[timeIdx].split(" ")[0];
-                  if (datePart && datePart.length >= 8) {
-                    uniqueDates.add(datePart);
-                    const currentDate = new Date(datePart);
-                    if (
-                      earliestDate === null ||
-                      currentDate < new Date(earliestDate)
-                    )
-                      earliestDate = datePart;
-                    if (
-                      latestDate === null ||
-                      currentDate > new Date(latestDate)
-                    )
-                      latestDate = datePart;
-                  }
-                }
-
-                // 追加: スキャン回数の集計
-                if (scanIdx !== -1 && row[scanIdx]) {
-                  const val = parseFloat(row[scanIdx]);
-                  if (!isNaN(val)) {
-                    scanCount++;
-                  }
-                }
-
-                if (fastActingIdx !== -1 && row[fastActingIdx]) {
-                  const val = parseFloat(row[fastActingIdx]);
-                  if (!isNaN(val)) {
-                    fastActingCount++;
-                    fastActingSum += val;
-                  }
-                }
-                if (longActingIdx !== -1 && row[longActingIdx]) {
-                  const val = parseFloat(row[longActingIdx]);
-                  if (!isNaN(val)) {
-                    longActingCount++;
-                    longActingSum += val;
-                  }
-                }
-              }
-
-              document
-                .getElementById("resultArea")
-                .classList.remove("waiting-state");
-              const periodEl = document.getElementById("periodResult");
-              periodEl.style.display = "block";
-              periodEl.innerText = earliestDate
-                ? `📅 記録期間: ${earliestDate} 〜 ${latestDate} （計 ${uniqueDates.size} 日間）`
-                : "📅 期間不明";
-
-              // 追加: スキャン回数のUI反映
-              document.getElementById("scanCount").innerText =
-                scanCount.toLocaleString();
-              document
-                .getElementById("scanCount")
-                .classList.remove("empty-text");
-
-              document.getElementById("totalCount").innerText = (
-                fastActingCount + longActingCount
-              ).toLocaleString();
-              document
-                .getElementById("totalCount")
-                .classList.remove("empty-text");
-              document.getElementById("totalSum").innerText = (
-                fastActingSum + longActingSum
-              ).toLocaleString();
-              document
-                .getElementById("totalSum")
-                .classList.remove("empty-text");
-
-              const fastEl = document.getElementById("fastActingResult");
-              fastEl.innerText = `${fastActingCount.toLocaleString()} 回 / ${fastActingSum.toLocaleString()} 単位`;
-              fastEl.classList.remove("empty-text");
-
-              const longEl = document.getElementById("longActingResult");
-              longEl.innerText = `${longActingCount.toLocaleString()} 回 / ${longActingSum.toLocaleString()} 単位`;
-              longEl.classList.remove("empty-text");
-            },
-          });
+          parseCSV(e.target.files[0]);
         });
+
+      // === 画面全体へのドラッグ＆ドロップ対応 ===
+      const dropZone = document.body;
+      const uploadArea = document.getElementById("uploadArea");
+
+      // デフォルトのブラウザの挙動（ファイルを開いてしまうなど）を無効化
+      ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+      });
+
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      // ドラッグ中であることを視覚的に伝えるためのクラス付け外し
+      ["dragenter", "dragover"].forEach((eventName) => {
+        dropZone.addEventListener(
+          eventName,
+          () => {
+            uploadArea.classList.add("dragover");
+          },
+          false,
+        );
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        dropZone.addEventListener(
+          eventName,
+          () => {
+            uploadArea.classList.remove("dragover");
+          },
+          false,
+        );
+      });
+
+      // 画面全体にドロップされた時の処理
+      dropZone.addEventListener(
+        "drop",
+        function (e) {
+          let dt = e.dataTransfer;
+          let files = dt.files;
+
+          if (files && files.length > 0) {
+            // ドロップされたファイルの中からCSVファイル（または最初のファイル）を読み込む
+            parseCSV(files[0]);
+          }
+        },
+        false,
+      );
     </script>
   </body>
 </html>
