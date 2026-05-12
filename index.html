@@ -234,7 +234,7 @@
       }
       .stat-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr; /* スキャン回数追加のため3列に変更 */
         gap: 16px;
         margin-bottom: 24px;
       }
@@ -322,7 +322,7 @@
         transform: translateY(-1px);
       }
 
-      /* スマホ向けレイアウト調整（画面幅が600px以下の場合に適用） */
+      /* スマホ向けレイアウト調整 */
       @media (max-width: 600px) {
         body {
           padding: 20px 10px;
@@ -378,7 +378,7 @@
     <div class="container">
       <h1>リブレデータ分析サイト</h1>
       <p class="description">
-        リブレのデータを読み込み、インスリンの利用状況を瞬時に集計します。処理はすべてデバイス上で行われます。
+        リブレのデータを読み込み、インスリンの利用状況やスキャン回数を瞬時に集計します。処理はすべてデバイス上で行われます。
       </p>
 
       <div class="guide-box">
@@ -412,6 +412,10 @@
       <div id="resultArea" class="result-box waiting-state">
         <div class="period-box" id="periodResult"></div>
         <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-value empty-text" id="scanCount">-</div>
+            <div class="stat-label">スキャン回数 (回)</div>
+          </div>
           <div class="stat-card">
             <div class="stat-value empty-text" id="totalCount">-</div>
             <div class="stat-label">総注射回数 (回)</div>
@@ -509,12 +513,14 @@
               }
 
               const headers = data[1];
+              const scanIdx = headers.indexOf("血糖値をスキャンする mg/dL"); // 追加: スキャン回数のインデックス
               const fastActingIdx =
                 headers.indexOf("超速効型インスリン値（単位）");
               const longActingIdx =
                 headers.indexOf("持効型インスリン値（単位）");
               const timeIdx = headers.indexOf("タイムスタンプ測定器");
 
+              let scanCount = 0; // 追加: スキャン回数のカウント用変数
               let fastActingCount = 0,
                 fastActingSum = 0;
               let longActingCount = 0,
@@ -542,6 +548,15 @@
                       latestDate = datePart;
                   }
                 }
+
+                // 追加: スキャン回数の集計
+                if (scanIdx !== -1 && row[scanIdx]) {
+                  const val = parseFloat(row[scanIdx]);
+                  if (!isNaN(val)) {
+                    scanCount++;
+                  }
+                }
+
                 if (fastActingIdx !== -1 && row[fastActingIdx]) {
                   const val = parseFloat(row[fastActingIdx]);
                   if (!isNaN(val)) {
@@ -566,6 +581,13 @@
               periodEl.innerText = earliestDate
                 ? `📅 記録期間: ${earliestDate} 〜 ${latestDate} （計 ${uniqueDates.size} 日間）`
                 : "📅 期間不明";
+
+              // 追加: スキャン回数のUI反映
+              document.getElementById("scanCount").innerText =
+                scanCount.toLocaleString();
+              document
+                .getElementById("scanCount")
+                .classList.remove("empty-text");
 
               document.getElementById("totalCount").innerText = (
                 fastActingCount + longActingCount
